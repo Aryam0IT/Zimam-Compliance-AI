@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -10,38 +10,28 @@ import {
   Settings as SettingsIcon,
   Bell,
   Upload,
-  Send,
-  BookOpen,
-  TriangleAlert,
-  Zap,
-  User2,
+  Eye,
+  File as FileIcon,
+  CheckCircle2,
+  Loader2,
 } from 'lucide-react';
 
 type Lang = 'en' | 'ar';
 
-export default function Page() {
+type Row = {
+  status: 'processed' | 'analyzing';
+  name: string;
+  risk: 'high' | 'medium' | 'low';
+  date: string;
+};
+
+export default function DocumentsPage() {
   const [lang, setLang] = useState<Lang>('en');
   const dir = lang === 'ar' ? 'rtl' : 'ltr';
-  const inputRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     document.documentElement.dir = dir;
     document.documentElement.lang = lang;
-
-    const el = inputRef.current;
-    if (!el) return;
-
-    const start = el.selectionStart ?? el.value.length;
-    const end = el.selectionEnd ?? el.value.length;
-
-    el.dir = dir;
-    el.style.textAlign = lang === 'ar' ? 'right' : 'left';
-
-    requestAnimationFrame(() => {
-      try {
-        el.setSelectionRange(start, end);
-      } catch {}
-    });
   }, [dir, lang]);
 
   const t = useMemo(() => {
@@ -51,79 +41,76 @@ export default function Page() {
         myDocs: 'My Documents',
         history: 'Compliance History',
         settings: 'Settings',
-        breadcrumb2: 'New Inquiry',
 
+        breadcrumb2: 'Document Library',
+        title: 'Document Library',
+        subtitle: 'Manage and analyze your compliance documents',
+
+        uploadNew: 'Upload New',
         english: 'English',
         arabic: 'العربية',
 
+        status: 'Status',
+        docName: 'Document Name',
+        risk: 'Risk',
+        date: 'Date',
+        action: 'Action',
+
+        processed: 'Processed',
+        analyzing: 'Analyzing',
+        high: 'High',
+        medium: 'Medium',
+        low: 'Low',
+
         userName: 'Ahmed Al-Fahad',
         userRole: 'Enterprise Admin',
-
-        q1: 'Do we need to register for VAT immediately, or can we wait until the end of the year?',
-        q2: 'Why was my filing rejected?',
-
-        card1Title: 'Mandatory Registration Threshold Hit',
-        card1Risk: 'RISK: MEDIUM',
-        card1Body:
-          'You must register for VAT within 30 days of exceeding the mandatory threshold of 375,000 SAR. Waiting until the end of the year will result in late registration penalties.',
-        card1Source: 'Source: Ref: KSA VAT Implementing Regulations, Article 3.',
-
-        card2Title: 'Critical Error: Cryptographic Stamp Mismatch (Code 301)',
-        card2Risk: 'RISK: HIGH',
-        card2Body:
-          "ZATCA's Fatoora portal rejected Invoice #INV-2026-092. The XML hash in your file does not match the computed hash, indicating a potential data integrity violation. ⚠️ Consequence: Invoice is classified as 'Not Issued'. Penalty risk: 5,000 SAR per instance.",
-        recoLabel: 'Recommendation:',
-        recoText: 'Regenerate the UUID and re-sign the XML file. Do not re-upload the same file.',
-        card2Source: 'Source: Ref: ZATCA Fatoora Controls, Security Std 5.2.3; Penalties Art 4.',
-
-        upload: 'Upload Document',
-        supports: 'Supports PDF and image files',
-        placeholder: 'Ask a compliance question or describe your ZATCA notice...',
-        pressEnter: 'Press Enter to send',
       },
       ar: {
         dashboard: 'لوحة التحكم',
         myDocs: 'مستنداتي',
         history: 'سجل الامتثال',
         settings: 'الإعدادات',
-        breadcrumb2: 'استفسار جديد',
 
+        breadcrumb2: 'مكتبة المستندات',
+        title: 'مكتبة المستندات',
+        subtitle: 'إدارة وتحليل مستندات الامتثال',
+
+        uploadNew: 'رفع جديد',
         english: 'English',
         arabic: 'العربية',
 
+        status: 'الحالة',
+        docName: 'اسم المستند',
+        risk: 'المخاطر',
+        date: 'التاريخ',
+        action: 'الإجراء',
+
+        processed: 'تمت المعالجة',
+        analyzing: 'قيد التحليل',
+        high: 'عالي',
+        medium: 'متوسط',
+        low: 'منخفض',
+
         userName: 'أحمد الفهد',
         userRole: 'مسؤول المؤسسة',
-
-        q1: 'هل لازم نسجل ضريبة القيمة المضافة فورًا، أو ننتظر لنهاية السنة؟',
-        q2: 'ليش انرفض الإيداع؟',
-
-        card1Title: 'تم تجاوز حد التسجيل الإلزامي',
-        card1Risk: 'المخاطر: متوسطة',
-        card1Body:
-          'يجب التسجيل في ضريبة القيمة المضافة خلال 30 يومًا من تجاوز حد التسجيل الإلزامي 375,000 ريال. الانتظار حتى نهاية السنة يؤدي إلى غرامات تأخير التسجيل.',
-        card1Source: 'المصدر: لائحة تطبيق ضريبة القيمة المضافة (السعودية)، المادة 3.',
-
-        card2Title: 'خطأ حرج: عدم تطابق الختم التشفيري (الكود 301)',
-        card2Risk: 'المخاطر: عالية',
-        card2Body:
-          'رفضت بوابة فاتورة التابعة لهيئة الزكاة والضريبة الفاتورة #INV-2026-092. قيمة التجزئة (Hash) في ملف XML لا تطابق التجزئة المحسوبة، مما يشير إلى احتمال وجود خلل في سلامة البيانات. ⚠️ النتيجة: تُصنَّف الفاتورة كـ "غير مُصدرة". خطر الغرامة: 5,000 ريال لكل حالة.',
-        recoLabel: 'التوصية:',
-        recoText: 'أعد توليد UUID وأعد توقيع ملف XML. لا ترفع نفس الملف مرة أخرى.',
-        card2Source: 'المصدر: ضوابط فاتورة (ZATCA)، معيار الأمن 5.2.3؛ مادة العقوبات 4.',
-
-        upload: 'رفع مستند',
-        supports: 'يدعم ملفات PDF والصور',
-        placeholder: 'اسأل سؤال امتثال أو صف إشعار هيئة الزكاة والضريبة...',
-        pressEnter: 'اضغط Enter للإرسال',
       },
     } as const;
 
     return dict[lang];
   }, [lang]);
 
+  const rows: Row[] = [
+    { status: 'processed', name: 'ZATCA_Rejection_Notice_Jan.pdf', risk: 'high', date: 'Jan 10' },
+    { status: 'processed', name: 'Q4_VAT_Return_2025.pdf', risk: 'low', date: 'Jan 8' },
+    { status: 'analyzing', name: 'Circular_Update_Phase2.pdf', risk: 'medium', date: 'Jan 5' },
+  ];
+
+  const riskLabel = (r: Row['risk']) => (r === 'high' ? t.high : r === 'medium' ? t.medium : t.low);
+  const statusLabel = (s: Row['status']) => (s === 'processed' ? t.processed : t.analyzing);
+
   return (
     <div className="page" data-dir={dir}>
-      {/* Sidebar (FIXED) */}
+      {/* Sidebar (FIXED) - نفس الداشبورد */}
       <aside className="sidebar">
         <div className="brand">
           <div className="logoWrap">
@@ -131,14 +118,14 @@ export default function Page() {
           </div>
 
           <nav className="nav">
-            <Link className="navItem active" href="/">
+            <Link className="navItem" href="/">
               <span className="ico" aria-hidden="true">
                 <LayoutDashboard size={18} />
               </span>
               <span>{t.dashboard}</span>
             </Link>
 
-            <Link className="navItem" href="/documents">
+            <Link className="navItem active" href="/documents">
               <span className="ico" aria-hidden="true">
                 <FileText size={18} />
               </span>
@@ -172,9 +159,9 @@ export default function Page() {
         </div>
       </aside>
 
-      {/* Main (scroll only here) */}
+      {/* Main - نفس الداشبورد */}
       <main className="main">
-        {/* Sticky header */}
+        {/* Sticky header - نفس الداشبورد */}
         <header className="top">
           <div className="crumb">
             <span>{t.dashboard}</span>
@@ -203,97 +190,72 @@ export default function Page() {
           </div>
         </header>
 
-        {/* Scrollable area */}
+        {/* Scroll only here */}
         <section className="scrollArea">
           <div className="center">
-            <div className="userLine">{t.q1}</div>
-
-            {/* Card 1 */}
-            <div className="row">
-              <div className="miniBox" aria-hidden="true">
-                <BookOpen size={16} />
+            {/* نفس إحساس المسافة في الداشبورد */}
+            <div className="docHeader">
+              <div>
+                <h1 className="h1">{t.title}</h1>
+                <p className="sub">{t.subtitle}</p>
               </div>
 
-              <div className="card">
-                <div className="cardHead">
-                  <div className="title">
-                    <BookOpen size={16} />
-                    {t.card1Title}
-                  </div>
-
-                  <div className="risk riskMed">
-                    <TriangleAlert size={16} />
-                    {t.card1Risk}
-                  </div>
-                </div>
-
-                <p className="body">{t.card1Body}</p>
-                <div className="source">{t.card1Source}</div>
-              </div>
-            </div>
-
-            {/* User bubble */}
-            <div className="userBubbleWrap">
-              <div className="userBubble">{t.q2}</div>
-              <div className="miniAvatar" aria-hidden="true">
-                <User2 size={16} />
-              </div>
-            </div>
-
-            {/* Card 2 */}
-            <div className="row">
-              <div className="miniBox" aria-hidden="true">
-                <BookOpen size={16} />
-              </div>
-
-              <div className="card">
-                <div className="cardHead">
-                  <div className="title">
-                    <BookOpen size={16} />
-                    {t.card2Title}
-                  </div>
-
-                  <div className="risk riskHigh">
-                    <Zap size={16} />
-                    {t.card2Risk}
-                  </div>
-                </div>
-
-                <p className="body">{t.card2Body}</p>
-
-                <div className="reco">
-                  <span className="recoLabel">{t.recoLabel}</span> {t.recoText}
-                </div>
-
-                <div className="source">{t.card2Source}</div>
-              </div>
-            </div>
-
-            {/* Input */}
-            <div className="inputWrap">
-              <button className="upload" type="button">
+              <button className="uploadNew" type="button">
                 <Upload size={18} />
-                <span className="uploadText">{t.upload}</span>
+                <span>{t.uploadNew}</span>
               </button>
+            </div>
 
-              <div className="inputBox">
-                <textarea
-                  ref={inputRef}
-                  className="textarea"
-                  placeholder={t.placeholder}
-                  rows={1}
-                  dir={dir}
-                  style={{ unicodeBidi: 'plaintext' }}
-                />
-                <div className="hints">
-                  <span className="support">{t.supports}</span>
-                  <span className="enter">{t.pressEnter}</span>
-                </div>
+            <div className="tableCard">
+              <div className="tableHead">
+                <div>{t.status}</div>
+                <div>{t.docName}</div>
+                <div>{t.risk}</div>
+                <div>{t.date}</div>
+                <div className="actionCol">{t.action}</div>
               </div>
 
-              <button className="send" type="button" aria-label="send">
-                <Send size={18} />
-              </button>
+              <div className="tableBody">
+                {rows.map((r) => (
+                  <div className="tr" key={r.name}>
+                    <div>
+                      <span className={`pill ${r.status === 'processed' ? 'ok' : 'wait'}`}>
+                        {r.status === 'processed' ? (
+                          <CheckCircle2 size={15} />
+                        ) : (
+                          <Loader2 size={15} className="spin" />
+                        )}
+                        {statusLabel(r.status)}
+                      </span>
+                    </div>
+
+                    <div className="docName">
+                      <span className="fileIco" aria-hidden="true">
+                        <FileIcon size={16} />
+                      </span>
+                      <span className="docText">{r.name}</span>
+                    </div>
+
+                    <div>
+                      <span
+                        className={`riskPill ${
+                          r.risk === 'high' ? 'high' : r.risk === 'medium' ? 'med' : 'low'
+                        }`}
+                      >
+                        {riskLabel(r.risk)}
+                      </span>
+                    </div>
+
+                    <div className="date">{r.date}</div>
+
+                    <div className="actionCol">
+                      <button className="eye" type="button" aria-label="view">
+                        <Eye size={18} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="bottomPad" />
@@ -301,13 +263,13 @@ export default function Page() {
         </section>
       </main>
 
+      {/* ✅ نفس CSS الخاص بالداشبورد تقريباً (عشان القياس يصير مطابق) */}
       <style jsx global>{`
         :root {
           --sidebarA: #2f5a45;
           --sidebarB: #2a5140;
 
           --text: #1f2a2b;
-          --muted: #6d7c7c;
           --border: #d7dde2;
 
           --card: #ffffff;
@@ -334,10 +296,6 @@ export default function Page() {
           color: var(--text);
           background: #fff;
           overflow-x: hidden;
-        }
-
-        .page {
-          min-height: 100vh;
         }
 
         .sidebar {
@@ -593,253 +551,203 @@ export default function Page() {
           left: 6px;
         }
 
+        /* ✅ نفس الداشبورد: scrollArea padding */
         .scrollArea {
           height: calc(100vh - var(--headerH));
           overflow-y: auto;
           padding: 14px 22px 22px;
         }
 
+        /* ✅ نفس الداشبورد: center width */
         .center {
           width: min(980px, 100%);
           margin: 0 auto;
         }
 
-        .userLine {
-          text-align: center;
-          font-size: 13.5px;
-          color: #6c7a7a;
-          margin: 8px 0 18px;
-        }
-
-        .row {
+        /* ---- Documents specific (لكن بدون ما يغير القياس العام) ---- */
+        .docHeader {
           display: flex;
           align-items: flex-start;
-          gap: 12px;
-          margin: 14px 0;
-        }
-
-        .miniBox {
-          width: 30px;
-          height: 30px;
-          border-radius: 10px;
-          background: #2f5a45;
-          color: #f3f7f6;
-          display: grid;
-          place-items: center;
-          box-shadow: 0 10px 18px rgba(0, 0, 0, 0.12);
-          margin-top: 10px;
-          flex: 0 0 auto;
-        }
-
-        .card {
-          flex: 1;
-          background: #ffffff;
-          border: 1px solid rgba(215, 221, 226, 0.98);
-          border-radius: var(--radius);
-          box-shadow: var(--shadow);
-          padding: 18px 18px 16px;
-          min-width: 0;
-        }
-
-        .cardHead {
-          display: flex;
-          align-items: center;
           justify-content: space-between;
           gap: 14px;
-          margin-bottom: 10px;
-          flex-wrap: wrap;
+          margin: 10px 0 18px;
         }
 
-        .title {
+        .h1 {
+          margin: 0;
+          font-size: 28px;
+          letter-spacing: -0.3px;
+        }
+
+        .sub {
+          margin: 6px 0 0;
+          color: #6a7a7a;
+          font-size: 14px;
+        }
+
+        .uploadNew {
           display: inline-flex;
           align-items: center;
           gap: 10px;
-          font-weight: 800;
-          color: #2a3a3b;
-          font-size: 15px;
+          padding: 12px 16px;
+          border-radius: 12px;
+          border: 1px solid rgba(20, 60, 40, 0.25);
+          background: #1f513e;
+          color: #fff;
+          cursor: pointer;
+          box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
+          white-space: nowrap;
         }
 
-        .risk {
+        .tableCard {
+          background: rgba(255, 255, 255, 0.82);
+          border: 1px solid rgba(215, 221, 226, 0.98);
+          border-radius: 18px;
+          box-shadow: var(--shadow);
+          overflow: hidden;
+        }
+
+        .tableHead {
+          display: grid;
+          grid-template-columns: 220px 1fr 140px 120px 90px;
+          gap: 12px;
+          padding: 14px 18px;
+          background: rgba(255, 255, 255, 0.35);
+          border-bottom: 1px solid rgba(215, 221, 226, 0.98);
+          font-weight: 800;
+          color: #2a3a3b;
+          font-size: 14px;
+        }
+
+        .tableBody .tr {
+          display: grid;
+          grid-template-columns: 220px 1fr 140px 120px 90px;
+          gap: 12px;
+          padding: 14px 18px;
+          align-items: center;
+          border-bottom: 1px solid rgba(215, 221, 226, 0.75);
+          background: rgba(255, 255, 255, 0.62);
+        }
+
+        .tableBody .tr:last-child {
+          border-bottom: none;
+        }
+
+        .pill {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          font-size: 12px;
-          font-weight: 800;
+          padding: 8px 12px;
           border-radius: 999px;
-          padding: 7px 12px;
+          font-weight: 800;
+          font-size: 13px;
           border: 1px solid;
+          width: fit-content;
+        }
+
+        .pill.ok {
+          color: #2f7a4b;
+          background: rgba(130, 230, 170, 0.18);
+          border-color: rgba(47, 122, 75, 0.22);
+        }
+
+        .pill.wait {
+          color: #b87400;
+          background: rgba(255, 195, 90, 0.18);
+          border-color: rgba(184, 116, 0, 0.22);
+        }
+
+        .spin {
+          animation: spin 1.1s linear infinite;
+        }
+
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        .docName {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          min-width: 0;
+        }
+
+        .fileIco {
+          width: 28px;
+          height: 28px;
+          border-radius: 10px;
+          background: rgba(240, 244, 246, 0.9);
+          border: 1px solid rgba(215, 221, 226, 0.95);
+          display: grid;
+          place-items: center;
+          color: #5e6d6d;
+          flex: 0 0 auto;
+        }
+
+        .docText {
           white-space: nowrap;
-          box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          color: #2a3a3b;
+          font-weight: 600;
         }
 
-        .riskMed {
-          color: #c07a00;
-          background: rgba(255, 183, 77, 0.14);
-          border-color: rgba(192, 122, 0, 0.32);
-          box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06), 0 0 0 4px rgba(255, 183, 77, 0.1);
+        .riskPill {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 8px 12px;
+          border-radius: 999px;
+          font-weight: 900;
+          font-size: 13px;
+          border: 1px solid;
+          width: fit-content;
         }
 
-        .riskHigh {
+        .riskPill.high {
           color: #b33838;
           background: rgba(255, 138, 138, 0.14);
           border-color: rgba(179, 56, 56, 0.3);
-          box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06), 0 0 0 4px rgba(255, 138, 138, 0.1);
         }
 
-        .body {
-          margin: 0 0 12px;
+        .riskPill.med {
+          color: #c07a00;
+          background: rgba(255, 183, 77, 0.14);
+          border-color: rgba(192, 122, 0, 0.32);
+        }
+
+        .riskPill.low {
+          color: #2f7a4b;
+          background: rgba(130, 230, 170, 0.18);
+          border-color: rgba(47, 122, 75, 0.22);
+        }
+
+        .date {
           color: #6a7a7a;
-          line-height: 1.65;
-          font-size: 13.5px;
+          font-weight: 600;
         }
 
-        .source {
-          background: #f2f5f7;
-          border: 1px solid rgba(215, 221, 226, 0.95);
-          border-radius: 12px;
-          padding: 12px 14px;
-          color: #6a7a7a;
-          font-size: 12.6px;
-        }
-
-        .reco {
-          background: #f5faf7;
-          border: 1px solid rgba(195, 216, 204, 0.85);
-          border-radius: 12px;
-          padding: 12px 14px;
-          color: #4e6060;
-          font-size: 13px;
-          margin: 10px 0 12px;
-        }
-
-        .recoLabel {
-          font-weight: 800;
-          color: #2f5a45;
-        }
-
-        .userBubbleWrap {
+        .actionCol {
           display: flex;
           justify-content: flex-end;
-          align-items: center;
-          gap: 10px;
-          margin: 10px 0 0;
         }
 
-        .userBubble {
-          background: rgba(255, 255, 255, 0.85);
-          border: 1px solid rgba(215, 221, 226, 0.95);
-          color: #3b4b4c;
+        .eye {
+          width: 38px;
+          height: 38px;
           border-radius: 999px;
-          padding: 10px 14px;
-          font-size: 13px;
-          box-shadow: 0 10px 22px rgba(0, 0, 0, 0.06);
-          max-width: 520px;
-        }
-
-        .miniAvatar {
-          width: 28px;
-          height: 28px;
-          border-radius: 999px;
-          background: rgba(255, 255, 255, 0.9);
-          border: 1px solid rgba(215, 221, 226, 0.95);
-          display: grid;
-          place-items: center;
-          color: #6a7a7a;
-        }
-
-        .inputWrap {
-          display: flex;
-          align-items: stretch;
-          gap: 12px;
-          margin: 18px 0 6px;
-        }
-
-        .upload {
-          width: 190px;
-          border-radius: 16px;
           border: 1px solid rgba(215, 221, 226, 0.98);
           background: rgba(255, 255, 255, 0.9);
-          box-shadow: 0 10px 22px rgba(0, 0, 0, 0.06);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
-          cursor: pointer;
-          padding: 14px 14px;
-          color: #4a5a5b;
-          flex: 0 0 auto;
-        }
-
-        .uploadText {
-          font-size: 13px;
-          font-weight: 700;
-        }
-
-        .inputBox {
-          flex: 1;
-          min-width: 0;
-          background: rgba(255, 255, 255, 0.9);
-          border: 1px solid rgba(215, 221, 226, 0.98);
-          border-radius: 16px;
-          box-shadow: 0 10px 22px rgba(0, 0, 0, 0.06);
-          padding: 12px 14px;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-
-        .textarea {
-          border: none;
-          outline: none;
-          resize: none;
-          background: transparent;
-          color: #2a3a3b;
-          font-size: 13.5px;
-          line-height: 1.5;
-          padding: 2px 0 0;
-          min-height: 30px;
-        }
-
-        .textarea::placeholder {
-          color: #7a8a8a;
-        }
-
-        .hints {
-          display: flex;
-          justify-content: space-between;
-          font-size: 11.5px;
-          color: #7a8a8a;
-          gap: 10px;
-        }
-
-        .send {
-          width: 54px;
-          border-radius: 16px;
-          border: 1px solid rgba(215, 221, 226, 0.98);
-          background: #7f8f88;
-          box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08);
           cursor: pointer;
           display: grid;
           place-items: center;
-          color: #ffffff;
-          flex: 0 0 auto;
+          color: #2f5a45;
         }
 
         .bottomPad {
           height: 18px;
-        }
-
-        @media (max-height: 740px) {
-          :root {
-            --headerH: 68px;
-          }
-          .sidebar {
-            padding: 18px 16px;
-          }
-          .navItem {
-            padding: 12px 12px;
-            min-height: 44px;
-          }
         }
 
         @media (max-width: 900px) {
@@ -848,34 +756,21 @@ export default function Page() {
             width: 100%;
             height: auto;
           }
-
           .main {
             margin-left: 0;
             margin-right: 0;
-            min-height: auto;
           }
-
           .scrollArea {
             height: auto;
             overflow: visible;
             padding: 14px;
           }
-
           .user {
             display: none;
           }
-
-          .inputWrap {
-            flex-direction: column;
-          }
-
-          .upload {
-            width: 100%;
-          }
-
-          .send {
-            width: 100%;
-            height: 52px;
+          .tableHead,
+          .tableBody .tr {
+            grid-template-columns: 180px 1fr 120px 90px 60px;
           }
         }
       `}</style>
