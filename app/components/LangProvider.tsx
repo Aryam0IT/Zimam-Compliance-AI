@@ -1,47 +1,68 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 export type Lang = 'ar' | 'en';
 
-type LangCtx = {
+type Ctx = {
   lang: Lang;
   dir: 'rtl' | 'ltr';
   setLang: (l: Lang) => void;
   toggleLang: () => void;
+  withLang: (path: string) => string;
 };
 
-const Ctx = createContext<LangCtx | null>(null);
+const LangContext = createContext<Ctx | null>(null);
 
-export function LangProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLang] = useState<Lang>('ar');
+export function useLang() {
+  const ctx = useContext(LangContext);
+  if (!ctx) throw new Error('useLang must be used within LangProvider');
+  return ctx;
+}
+
+// ✅ Default export
+export default function LangProvider({
+  children,
+  defaultLang = 'en',
+}: {
+  children: React.ReactNode;
+  defaultLang?: Lang;
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const sp = useSearchParams();
+
+  const urlLang = (sp.get('lang') as Lang) || null;
+  const [lang, setLangState] = useState<Lang>(urlLang ?? defaultLang);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem('lang') as Lang | null;
-    if (saved === 'ar' || saved === 'en') setLang(saved);
-  }, []);
+    if (urlLang && urlLang !== lang) setLangState(urlLang);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlLang]);
 
   useEffect(() => {
-    window.localStorage.setItem('lang', lang);
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
   }, [lang]);
 
-  const value = useMemo<LangCtx>(() => {
+  function setLang(l: Lang) {
+    setLangState(l);
+    const next = new URLSearchParams(sp.toString());
+    next.set('lang', l);
+    router.replace(`${pathname}?${next.toString()}`);
+  }
+
+  function toggleLang() {
+    setLang(lang === 'ar' ? 'en' : 'ar');
+  }
+
+  const value = useMemo<Ctx>(() => {
     const dir = lang === 'ar' ? 'rtl' : 'ltr';
-    return {
-      lang,
-      dir,
-      setLang,
-      toggleLang: () => setLang((p) => (p === 'ar' ? 'en' : 'ar')),
-    };
+    const withLang = (path: string) =>
+      path.includes('?') ? `${path}&lang=${lang}` : `${path}?lang=${lang}`;
+    return { lang, dir, setLang, toggleLang, withLang };
   }, [lang]);
 
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
-}
-
-export function useLang() {
-  const v = useContext(Ctx);
-  if (!v) throw new Error('useLang must be used within LangProvider');
-  return v;
+  return <LangContext.Provider value={value}>{children}</LangContext.Provider>;
 }

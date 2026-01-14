@@ -1,12 +1,13 @@
 'use client';
 
 import { useMemo } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Mail, Lock, User } from 'lucide-react';
 import AuthLayout from '../components/AuthLayout';
 import { useLang } from '../components/LangProvider';
 
 export default function SignupPage() {
+  const router = useRouter();
   const { lang, dir } = useLang();
 
   const t = useMemo(
@@ -41,7 +42,8 @@ export default function SignupPage() {
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    console.log('SIGNUP ✅');
+    // TODO: Signup API
+    router.push('/verify');
   }
 
   return (
@@ -51,22 +53,22 @@ export default function SignupPage() {
 
         <div className="input">
           <User size={18} />
-          <input type="text" placeholder={t.name} required />
+          <input type="text" placeholder={t.name} autoComplete="name" required />
         </div>
 
         <div className="input">
           <Mail size={18} />
-          <input type="email" placeholder={t.email} dir="ltr" required />
+          <input type="email" placeholder={t.email} dir="ltr" autoComplete="email" required />
         </div>
 
         <div className="input">
           <Lock size={18} />
-          <input type="password" placeholder={t.pass} required />
+          <input type="password" placeholder={t.pass} autoComplete="new-password" required />
         </div>
 
         <div className="input">
           <Lock size={18} />
-          <input type="password" placeholder={t.confirm} required />
+          <input type="password" placeholder={t.confirm} autoComplete="new-password" required />
         </div>
 
         <button className="btn" type="submit">
@@ -75,9 +77,9 @@ export default function SignupPage() {
 
         <p className="switch">
           {t.switchQ}{' '}
-          <Link className="link" href="/login">
+          <button type="button" className="link" onClick={() => router.push('/login')}>
             {t.switchA}
-          </Link>
+          </button>
         </p>
 
         <style jsx>{`
@@ -150,9 +152,12 @@ export default function SignupPage() {
           }
 
           .link {
+            background: transparent;
+            border: 0;
+            padding: 0;
+            cursor: pointer;
             color: #1f513e;
             font-weight: 800;
-            text-decoration: none;
           }
 
           .link:hover {

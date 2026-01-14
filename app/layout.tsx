@@ -1,6 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { LangProvider } from './components/LangProvider';
+import LangProvider from './components/LangProvider'; // ✅ بدون {}
 
 export const metadata: Metadata = {
   title: 'Zimam',
@@ -9,9 +9,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" dir="rtl" suppressHydrationWarning>
+    <html>
       <body>
-        <LangProvider>{children}</LangProvider>
+        <LangProvider defaultLang="en">{children}</LangProvider>
       </body>
     </html>
   );
